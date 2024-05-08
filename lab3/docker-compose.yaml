@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  nginx:
+    image: nginx:latest
+    depends_on:
+      - django-app
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - "8080:80"
+    environment:
+      - NGINX_PORT=80
+
+  postgres:
+    hostname: postgres
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=restaurant
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
+  django-app:
+    build:
+      context: ./project
+    container_name: lab3
+    depends_on:
+      - postgres
+    volumes:
+      - ./project:/restaurant
+    ports:
+      - "8000:8000"
+    entrypoint: bash -c "
+        python manage.py makemigrations 
+        && python manage.py migrate 
+        && python manage.py runserver 0.0.0.0:8000
+      "
